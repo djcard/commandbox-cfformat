@@ -23,7 +23,7 @@ component accessors="true" {
      * @overwrite overwrite file in place
      * @timeit print the time formatting took to the console
      */
-    function run(string path = '', string settingsPath = '', boolean timeit = false) {
+    function run(string path = '', string settingsPath = '', boolean timeit = false, boolean returnBoolean=false) {
         var pathData = cfformatUtils.resolveFormatPath(path);
 
         if (path.len() && !pathData.filePaths.len()) {
@@ -34,19 +34,24 @@ component accessors="true" {
         var userSettings = cfformatUtils.resolveSettings(pathData.filePaths, settingsPath);
 
         if (pathData.pathType == 'file') {
-            checkFile(pathData.filePaths[1], userSettings.paths[pathData.filePaths[1]], timeit)
+            checkFile(pathData.filePaths[1], userSettings.paths[pathData.filePaths[1]], timeit,returnBoolean);
         } else {
             checkFiles(pathData.filePaths, userSettings.paths, timeit);
         }
     }
 
-    function checkFile(fullPath, settings, timeit) {
+    function checkFile(fullPath, settings, timeit,returnBoolean) {
         var start = getTickCount();
         var formatted = cfformat.formatFile(fullPath, settings);
         var timeTaken = getTickCount() - start;
 
         var original = fileRead(fullPath, 'utf-8');
-        if (compare(original, formatted) == 0) {
+        var unFormatted=compare(original, formatted);
+
+        if(returnBoolean){
+            print.line(unFormatted eq 0 ? 0 : 1); return;
+        }
+        if (unFormatted == 0) {
             print.greenLine('File is formatted according to cfformat rules.');
         } else {
             print.redLine('File is not formatted according to cfformat rules.');
